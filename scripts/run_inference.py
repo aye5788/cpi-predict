@@ -22,13 +22,12 @@ PRED_PATH = REPO_ROOT / "data" / "predictions.parquet"
 # Model preparation
 # ----------------------------
 def prepare_model():
-    # If _runtime exists as a file, delete it
-    if RUNTIME_DIR.exists() and not RUNTIME_DIR.is_dir():
-        RUNTIME_DIR.unlink()
-
-    # Clean runtime directory completely
+    # Reset runtime directory completely
     if RUNTIME_DIR.exists():
-        shutil.rmtree(RUNTIME_DIR)
+        if RUNTIME_DIR.is_dir():
+            shutil.rmtree(RUNTIME_DIR)
+        else:
+            RUNTIME_DIR.unlink()
 
     RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -36,16 +35,16 @@ def prepare_model():
     with zipfile.ZipFile(MODEL_ZIP, "r") as z:
         z.extractall(RUNTIME_DIR)
 
-    # Find the actual H2O model directory (contains _model.ini)
-    model_dirs = list(RUNTIME_DIR.rglob("_model.ini"))
+    # Find first extracted path (file or directory)
+    extracted = list(RUNTIME_DIR.iterdir())
 
-    if not model_dirs:
-        raise RuntimeError("No H2O model found after unzip")
+    if not extracted:
+        raise RuntimeError("Model ZIP extracted nothing")
 
-    # _model.ini lives inside the model directory
-    model_dir = model_dirs[0].parent
+    # If only one item, use it directly
+    model_path = extracted[0]
 
-    return model_dir
+    return model_path
 
 
 # ----------------------------
@@ -72,3 +71,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
