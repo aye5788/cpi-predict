@@ -1,1 +1,3 @@
 model/_runtime/
+__pycache__/
+*.pyc
