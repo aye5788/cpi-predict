@@ -1,1 +1,39 @@
+name: Monthly CPI Inference
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install deps
+        run: |
+          pip install h2o pandas pyarrow fredapi
+
+      - name: Run pipeline
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          python scripts/fetch_data.py
+          python scripts/build_features.py
+          python scripts/run_inference.py
+          python scripts/build_decision_table.py
+
+      - name: Commit outputs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add outputs/*
+          git commit -m "Monthly CPI decision table" || echo "No changes"
+          git push
 
