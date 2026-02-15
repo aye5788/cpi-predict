@@ -17,7 +17,10 @@ def prepare_model():
     if MODEL_DIR.exists():
         shutil.rmtree(MODEL_DIR)
 
-    RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
+if RUNTIME_DIR.exists() and not RUNTIME_DIR.is_dir():
+    RUNTIME_DIR.unlink()
+
+RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 
     with zipfile.ZipFile(MODEL_ZIP, "r") as z:
         z.extractall(RUNTIME_DIR)
